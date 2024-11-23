@@ -10,6 +10,7 @@ import {
 } from "./lib/zodSchams";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { nylas } from "./lib/nylas";
 
 export async function OnboardingAction(prevState: any, formData: FormData) {
   const session = await requiredUser();
@@ -170,6 +171,178 @@ export async function CreateEventTypeAction(
       url: submission.value.url,
       description: submission.value.description,
       videoCallSoftware: submission.value.videoCallSoftware,
+      userId: session.user?.id,
+    },
+  });
+
+  return redirect("/dashboard");
+}
+
+export async function CreateMeetingAction(formData: FormData) {
+  const getUserData = await prisma.user.findUnique({
+    where: {
+      userName: formData.get("username") as string,
+    },
+    select: {
+      grantEmail: true,
+      grantId: true,
+    },
+  });
+
+  if (!getUserData) {
+    throw new Error("user not found!");
+  }
+
+  const eventTypeData = await prisma.eventType.findUnique({
+    where: {
+      id: formData.get("eventTypeId") as string,
+    },
+    select: {
+      title: true,
+      description: true,
+    },
+  });
+
+  const fromTime = formData.get("fromTime") as string;
+
+  const eventDate = formData.get("eventDate") as string;
+
+  const meetingLength = Number(formData.get("meetingLength"));
+
+  const provider = formData.get("provider") as string;
+
+  const startDateTime = new Date(`${eventDate}T${fromTime}:00`);
+  const endDateTime = new Date(startDateTime.getTime() + meetingLength * 60000);
+
+  await nylas.events.create({
+    identifier: getUserData.grantId as string,
+    requestBody: {
+      title: eventTypeData?.title,
+      description: eventTypeData?.description,
+      when: {
+        startTime: Math.floor(startDateTime.getTime() / 1000),
+        endTime: Math.floor(endDateTime.getTime() / 1000),
+      },
+      conferencing: {
+        autocreate: {},
+        provider: provider as any,
+      },
+      participants: [
+        {
+          name: formData.get("name") as string,
+          email: formData.get("email") as string,
+          status: "yes",
+        },
+      ],
+    },
+    queryParams: {
+      calendarId: getUserData.grantEmail as string,
+      notifyParticipants: true,
+    },
+  });
+
+  return redirect("/sucess");
+}
+
+export async function CancelMeetingAction(formData: FormData) {
+  const session = await requiredUser();
+
+  const userData = await prisma.user.findUnique({
+    where: {
+      id: session.user?.id,
+    },
+    select: {
+      grantEmail: true,
+      grantId: true,
+    },
+  });
+
+  if (!userData) {
+    throw new Error("User not found!");
+  }
+
+  const data = await nylas.events.destroy({
+    eventId: formData.get("eventId") as string,
+    identifier: userData.grantId as string,
+    queryParams: {
+      calendarId: userData.grantEmail as string,
+    },
+  });
+
+  revalidatePath("/dashboard/meetings");
+}
+
+export async function EditEventTypeAction(prevState: any, formData: FormData) {
+  const session = await requiredUser();
+
+  const submission = parseWithZod(formData, {
+    schema: eventTypeSchema,
+  });
+
+  if (submission.status !== "success") {
+    return submission.reply();
+  }
+
+  const data = await prisma.eventType.update({
+    where: {
+      id: formData.get("id") as string,
+      userId: session.user?.id,
+    },
+    data: {
+      title: submission.value.title,
+      duration: submission.value.duration,
+      description: submission.value.description,
+      url: submission.value.url,
+      videoCallSoftware: submission.value.videoCallSoftware,
+    },
+  });
+
+  return redirect("/dashboard");
+}
+
+export async function UpdateEventTypeStatusAction(
+  prevState: any,
+  {
+    eventTypeId,
+    isChecked,
+  }: {
+    eventTypeId: string;
+    isChecked: boolean;
+  }
+) {
+  try {
+    const session = await requiredUser();
+
+    const data = await prisma.eventType.update({
+      where: {
+        id: eventTypeId,
+        userId: session.user?.id,
+      },
+      data: {
+        active: isChecked,
+      },
+    });
+
+    revalidatePath("/dashboard");
+
+    return {
+      status: "success",
+      message: "Event Type Status Updated!",
+    };
+  } catch (error) {
+    return {
+      status: "error",
+      message: "Something went wrong!",
+    };
+  }
+}
+
+export async function DeleteEventTypeAction(formData: FormData) {
+  const session = await requiredUser();
+
+  const data = await prisma.eventType.delete({
+    where: {
+      id: formData.get("id") as string,
       userId: session.user?.id,
     },
   });

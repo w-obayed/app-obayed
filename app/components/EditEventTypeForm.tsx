@@ -1,8 +1,11 @@
 "use client";
 
+import { useForm } from "@conform-to/react";
+import { parseWithZod } from "@conform-to/zod";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/ButtonGroup";
+import { useFormState } from "react-dom";
+import { CreateEventTypeAction, EditEventTypeAction } from "../actions";
+import { eventTypeSchema } from "../lib/zodSchams";
 import {
   Card,
   CardContent,
@@ -11,8 +14,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -22,22 +26,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-import { Textarea } from "@/components/ui/textarea";
+import { ButtonGroup } from "@/components/ui/ButtonGroup";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { SubmitButton } from "@/app/components/SubmitButtions";
-import { useFormState } from "react-dom";
-import { CreateEventTypeAction } from "@/app/actions";
-import { useForm } from "@conform-to/react";
-import { parseWithZod } from "@conform-to/zod";
-import { eventTypeSchema } from "@/app/lib/zodSchams";
+import { SubmitButton } from "./SubmitButtions";
 
 type videoCallProvider = "Zoom Meeting" | "Google Meet" | "Microsoft Teams";
 
-export default function newEventRoute() {
-  const [active, setActive] = useState<videoCallProvider>("Google Meet");
+interface iAppProps {
+  id: string;
+  title: string;
+  url: string;
+  description: string;
+  duration: number;
+  callProvider: string;
+}
 
-  const [lastResult, action] = useFormState(CreateEventTypeAction, undefined);
+export function EditEventForm({
+  id,
+  title,
+  url,
+  description,
+  duration,
+  callProvider,
+}: iAppProps) {
+  const [active, setActive] = useState<videoCallProvider>(
+    callProvider as videoCallProvider
+  );
+
+  const [lastResult, action] = useFormState(EditEventTypeAction, undefined);
 
   const [form, fields] = useForm({
     lastResult,
@@ -49,24 +66,26 @@ export default function newEventRoute() {
     shouldValidate: "onBlur",
     shouldRevalidate: "onInput",
   });
+
   return (
     <div className=" w-full h-full flex flex-1 items-center justify-center ">
       <Card>
         <CardHeader>
-          <CardTitle>Add new appointment type</CardTitle>
+          <CardTitle>Edit appointment type</CardTitle>
           <CardDescription>
-            Create new appointment type that allows people to book you!
+            Edit your appointment type that allows people to book you!
           </CardDescription>
         </CardHeader>
 
         <form id={form.id} onSubmit={form.onSubmit} action={action} noValidate>
+          <input type="hidden" name="id" value={id} />
           <CardContent className="grid gap-y-5">
             <div className="flex flex-col gap-y-2">
               <Label>Title</Label>
               <Input
                 name={fields.title.name}
                 key={fields.title.key}
-                defaultValue={fields.title.initialValue}
+                defaultValue={title}
                 placeholder="30-minute meeting"
               />
               <p className="text-red-500 text-sm">{fields.title.errors}</p>
@@ -80,7 +99,7 @@ export default function newEventRoute() {
                 <Input
                   name={fields.url.name}
                   key={fields.url.key}
-                  defaultValue={fields.url.initialValue}
+                  defaultValue={url}
                   className="rounded-l-none"
                   placeholder="Exaple-url-1"
                 />
@@ -92,7 +111,7 @@ export default function newEventRoute() {
               <Textarea
                 name={fields.description.name}
                 key={fields.description.key}
-                defaultValue={fields.description.initialValue}
+                defaultValue={description}
                 placeholder="Meet me in this meeting to meet me"
               />
               <p className="text-red-500 text-sm">
@@ -104,7 +123,7 @@ export default function newEventRoute() {
               <Select
                 name={fields.duration.name}
                 key={fields.duration.key}
-                defaultValue={fields.duration.initialValue}
+                defaultValue={String(duration)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select duration" />
@@ -165,7 +184,7 @@ export default function newEventRoute() {
             <Button variant="secondary">
               <Link href="/dashboard">Cancel</Link>
             </Button>
-            <SubmitButton text="Create Event Type" />
+            <SubmitButton text="Edit Event Type" />
           </CardFooter>
         </form>
       </Card>

@@ -14,7 +14,7 @@ model User {
   email         String         @unique
   emailVerified DateTime?
   image         String?        @unique
-  userName      String?
+  userName      String?        @unique
   grantId       String?
   grantEmail    String?
   accounts      Account[]

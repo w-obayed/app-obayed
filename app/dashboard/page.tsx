@@ -4,8 +4,8 @@ import { requiredUser } from "../lib/hooks";
 import { EmptyState } from "../components/emptyState";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ExternalLink, Link2, Pen, Settings, Trash, User2 } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
+import { ExternalLink, Pen, Settings, Trash, User2 } from "lucide-react";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +15,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { CopyLinkMenuItem } from "../components/copyLInkMenu";
+import { MenuActiveSwitch } from "../components/EventTypeSwitcher";
 
 async function getData(userId: string) {
   const data = await prisma.user.findUnique({
@@ -91,19 +93,22 @@ const DashboardPage = async () => {
                             Preview
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Link2 className="mr-2 size-4" />
-                          Copy
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Pen className="mr-2 size-4" />
-                          Edit
+                        <CopyLinkMenuItem
+                          meetingUrl={`${process.env.NEXT_PUBLIC_URL}/${data.userName}/${item.url}`}
+                        />
+                        <DropdownMenuItem asChild>
+                          <Link href={`/dashboard/event/${item.id}`}>
+                            <Pen className="mr-2 size-4" />
+                            Edit
+                          </Link>
                         </DropdownMenuItem>
                       </DropdownMenuGroup>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem>
-                        <Trash className="mr-2 size-4" />
-                        Delete
+                      <DropdownMenuItem asChild>
+                        <Link href={`/dashboard/event/${item.id}/delete`}>
+                          <Trash className="mr-2 size-4" />
+                          Delete
+                        </Link>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -123,9 +128,14 @@ const DashboardPage = async () => {
                   </div>
                 </Link>
                 <div className="bg-muted px-5 py-3 justify-between items-center flex">
-                  <Switch />
+                  <MenuActiveSwitch
+                    initalchecked={item.active}
+                    eventTypeId={item.id}
+                  />
 
-                  <Button>Edit Event</Button>
+                  <Button asChild>
+                    <Link href={`/dashboard/event/${item.id}`}>Edit Event</Link>
+                  </Button>
                 </div>
               </div>
             ))}
