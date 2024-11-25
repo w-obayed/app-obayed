@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { CalendarX2, Clock, VideoIcon } from "lucide-react";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 
 async function getData(eventUrl: string, userName: string) {
@@ -73,7 +74,7 @@ export default async function BookingFormRoute({
           <CardContent className="p-5 md:grid md:grid-cols-[1fr,auto,1fr] gap-4">
             <div>
               <img
-                src={data.User?.image as string | undefined}
+                src={data.User?.image as string}
                 alt="Profile Image"
                 className="size-10 rounded-full"
               />
