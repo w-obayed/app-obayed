@@ -34,7 +34,7 @@ import { eventTypeSchema } from "@/app/lib/zodSchams";
 
 type videoCallProvider = "Zoom Meeting" | "Google Meet" | "Microsoft Teams";
 
-export default function newEventRoute() {
+export default function NewEventRoute() {
   const [active, setActive] = useState<videoCallProvider>("Google Meet");
 
   const [lastResult, action] = useFormState(CreateEventTypeAction, undefined);

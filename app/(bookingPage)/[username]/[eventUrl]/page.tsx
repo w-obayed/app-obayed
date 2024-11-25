@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { CreateMeetingAction } from "@/app/actions";
 import { RenderCalendar } from "@/app/components/bookingForm/RenderCalendar";
 import { SubmitButton } from "@/app/components/SubmitButtions";
@@ -72,7 +73,7 @@ export default async function BookingFormRoute({
           <CardContent className="p-5 md:grid md:grid-cols-[1fr,auto,1fr] gap-4">
             <div>
               <img
-                src={data.User?.image}
+                src={data.User?.image as string | undefined}
                 alt="Profile Image"
                 className="size-10 rounded-full"
               />
@@ -138,7 +139,7 @@ export default async function BookingFormRoute({
           <CardContent className="p-5 md:grid md:grid-cols-[1fr,auto,1fr,auto,1fr] gap-4">
             <div>
               <img
-                src={data.User?.image}
+                src={data.User?.image as string}
                 alt="Profile Image"
                 className="size-10 rounded-full"
               />
