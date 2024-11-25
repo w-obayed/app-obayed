@@ -20,8 +20,10 @@ export function Calendar(
     createCalendar,
   });
 
-  const { calendarProps, prevButtonProps, nextButtonProps, title } =
-    useCalendar(props, state);
+  const { calendarProps, prevButtonProps, nextButtonProps } = useCalendar(
+    props,
+    state
+  );
   return (
     <div {...calendarProps} className="inline-block">
       <CalendarHeader
